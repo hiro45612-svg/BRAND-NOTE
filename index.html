@@ -1,0 +1,110 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#292724"><link rel="manifest" href="manifest.json"><link rel="apple-touch-icon" href="icon.svg"><title>BRAND NOTE v0.4</title>
+<style>
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#f5f3ef;color:#292724;margin:0}
+header{background:#292724;color:white;padding:18px 22px}.wrap{max-width:980px;margin:auto;padding:20px}
+.card{background:#fff;border-radius:16px;padding:20px;margin:14px 0;box-shadow:0 3px 14px #0001}
+button{border:0;border-radius:10px;padding:11px 16px;background:#292724;color:white;cursor:pointer;margin:4px}.secondary{background:#e9e5df;color:#292724}
+input,textarea,select{box-sizing:border-box;width:100%;padding:11px;border:1px solid #d7d1c8;border-radius:9px;margin:6px 0 12px;font-size:15px}
+textarea{min-height:90px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.brand{cursor:pointer}.brand:hover{background:#faf8f5}.pill{display:inline-block;background:#eee8df;border-radius:99px;padding:4px 9px;font-size:12px;margin:2px}.catpill{display:inline-flex;align-items:center;gap:5px;background:#eee8df;border-radius:99px;padding:5px 10px;font-size:13px;margin:2px;font-weight:600}.muted{color:#777;font-size:13px}.hidden{display:none}
+.search{position:sticky;top:0;background:#f5f3ef;padding-bottom:5px}.hero{font-size:28px}.good{font-weight:700}.small{font-size:12px}
+</style></head><body><header><div class="wrap"><b>BRAND NOTE</b>　REBOOT 56 / v0.4</div></header>
+<div class="wrap">
+<div id="home">
+<div class="card"><div class="hero">これまでのブランド学習を、全部ここへ。</div>
+<p>Excelから移行済み。これからはアプリに記録していく想定です。<br><span class="muted">キャッチが空欄だったブランドは、ちゃぴこ案を自動補完しています。</span></p>
+<button onclick="show('add')">＋ 新しいブランド</button>
+<button class="secondary" onclick="backup()">JSONバックアップ</button><button class="secondary" onclick="exportReboot()">🧠 REBOOT 56へ送る</button>
+</div>
+<div class="grid" id="stats"></div>
+<div class="search">
+<div style="margin:8px 0 10px;color:#777">主力カテゴリーをAIで表示</div>
+<div id="catButtons" style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px"></div>
+<input id="search" oninput="renderList()" placeholder="🔎 ブランド名・国・キーワードで検索">
+</div>
+<div class="card"><h3>ブランド一覧</h3><div id="list"></div></div>
+</div>
+
+<div id="add" class="hidden"><div class="card"><h2>新しいブランド</h2>
+<input id="brandName" placeholder="例：John Lobb"><button onclick="research()">🔎 ちゃぴこに基本情報を調べてもらう</button>
+<button class="secondary" onclick="show('home')">戻る</button><p class="muted">v0.4ではUIを完成。リアルタイムWeb検索は次段階で接続します。</p></div></div>
+
+<div id="confirm" class="hidden"><div class="card"><h2>基本情報を確認</h2><div id="researchResult"></div>
+<button onclick="saveResearch()">✓ 保存</button><button class="secondary" onclick="show('add')">戻る</button></div></div>
+<div id="detail" class="hidden"></div>
+</div>
+
+<script>
+const initial=[{"name": "カルティエ", "country": "フランス", "year": "1847年", "founder": "ルイ＝フランソワ・カルティエ", "origin": "宝石・ジュエリー工房の継承", "philosophy": "王の宝石商、宝石商の王（最高の職人技と革新性の追求）", "products": "タンク、サントス、ラブブレス", "summary": "時計と宝飾の芸術", "visits": [{"date": "260726 銀座", "place": "", "note": "タンク、サントスの時計を見る。サントスかっこよい", "revisit": "no"}], "_summary_ai": false, "category": "時計", "category_ai": true}, {"name": "エルメス", "country": "フランス", "year": "1837年", "founder": "ティエリ・エルメス", "origin": "高級馬具工房", "philosophy": "職人技の継承と素材への至高のこだわり", "products": "バーキン、ケリー", "summary": "革職人の頂点", "visits": [{"date": "260726　銀座", "place": "", "note": "エプソンの二つ折り財布　50万円とか", "revisit": "no"}], "_summary_ai": false, "category": "革小物", "category_ai": true}, {"name": "ルイ・ヴィトン", "country": "フランス", "year": "1854年", "founder": "ルイ・ヴィトン", "origin": "トランク製造職人（荷造り用木箱製造）", "philosophy": "旅の真髄（エレガントで実用的な旅の追及）", "products": "モノグラム・キャンバス（キーポル、スピーディ等）", "summary": "旅の文化", "visits": [{"date": "260726　銀座", "place": "", "note": "モノグラムの二つ折り財布7万円程度\nトランクを見せてもらいました", "revisit": "no"}], "_summary_ai": false, "category": "バッグ", "category_ai": true}, {"name": "ダンヒル", "country": "イギリス・ロンドン", "year": "1893年", "founder": "アルフレッド・ダンヒル", "origin": "馬具用品 → 自動車用品\n「運転する紳士」のためのブランド", "philosophy": "英国紳士\nビジネス\n落ち着き\n実用品", "products": "財布\n名刺入れ\nベルト\nバッグ\nライター", "summary": "革の質感\nロゴが控えめ", "visits": [{"date": "260728 伊勢丹", "place": "", "note": "牛革の財布　18万円とか", "revisit": "no"}], "_summary_ai": false, "category": "革小物", "category_ai": true}, {"name": "モンブラン", "country": "ドイツ", "year": "1906年", "founder": "クラウス＝ヨハネス・フォス、アルフレッド・ネヘミアス、アウグスト・エーバースタイン", "origin": "万年筆", "philosophy": "書く文化\n知性\nビジネス\nマイスター（職人）", "products": "万年筆\nボールペン\n財布\nバッグ\nベルト", "summary": "マイスターシュテュックを見る\n革小物を見る\nビジネスマン向けの世界観", "visits": [], "_summary_ai": false, "category": "文房具", "category_ai": true}, {"name": "ベルルッティ", "country": "フランスパリ", "year": "1895年", "founder": "アレッサンドロ・ベルルッティ", "origin": "オーダーメイドの紳士靴", "philosophy": "革\nパティーヌ\n靴職人\n大人の男性\nエイジング（経年変化）", "products": "革靴\nスニーカー\n財布\n名刺入れ\nバッグ\nベルト", "summary": "パティーヌ（Patina）\n職人が何層も染料を重ね、\n\n一つ一つ手作業で色を作ります。", "visits": [{"date": "260728 伊勢丹", "place": "", "note": "牛革の財布　18万円とか", "revisit": "no"}], "_summary_ai": false, "category": "靴", "category_ai": true}, {"name": "ボッテガヴェネタ", "country": "イタリア・ヴィチェンツァ", "year": "1966年", "founder": "ミケーレ・タッデイ、レンツォ・ゼンジアーロ", "origin": "革工房", "philosophy": "革\n職人技\nロゴに頼らない", "products": "財布\nバッグ\nカードケース\nベルト", "summary": "革を編み込む技法\nブランドの象徴", "visits": [{"date": "260728 伊勢丹", "place": "", "note": "牛革の財布　18万円とか", "revisit": "no"}], "_summary_ai": false, "category": "革小物", "category_ai": true}, {"name": "スマイソン", "country": "イギリス", "year": "1887年", "founder": "フランク・スマイソン", "origin": "高級文房具店", "philosophy": "美しく実用的なステーショナリー", "products": "パナマ手帳、財布", "summary": "英国の美しいステーショナリー", "visits": [], "_summary_ai": true, "category": "文房具", "category_ai": true}, {"name": "エッティンガー", "country": "イギリス", "year": "1934年", "founder": "ジェラルド・エッティンガー", "origin": "高級革小物", "philosophy": "英国伝統の革小物を次世代へ", "products": "財布、名刺入れ", "summary": "英国の革小物", "visits": [], "_summary_ai": true, "category": "革小物", "category_ai": true}, {"name": "GANZO", "country": "日本", "year": "1999年", "founder": "AJIOKA.", "origin": "国産高級革製品ブランド", "philosophy": "日本最高品質の革製品づくり", "products": "ブライドルレザー（イギリス　ワックス）\nシェルコードバン（馬）\nミネルバボックス（イタリア）", "summary": "日本で加工する", "visits": [{"date": "2260802表参道", "place": "", "note": "革　5万とか", "revisit": "no"}], "_summary_ai": false, "category": "革小物", "category_ai": true}, {"name": "デルヴォー", "country": "ベルギー", "year": "1829年", "founder": "シャルル・デルヴォー", "origin": "高級革製旅行用品", "philosophy": "世界最古のラグジュアリーレザーブランド", "products": "ブリヨン、タンペート", "summary": "エルメスを超える最古の歴史", "visits": [{"date": "2260802表参道", "place": "", "note": "革財布18万", "revisit": "no"}], "_summary_ai": false, "category": "バッグ", "category_ai": true}, {"name": "ポーター", "country": "日本", "year": "1962年", "founder": "吉田吉蔵（吉田カバン）", "origin": "鞄製造", "philosophy": "一針入魂・日本製へのこだわり", "products": "タンカー、ヒート", "summary": "日本の鞄づくり", "visits": [{"date": "2260802表参道", "place": "", "note": "ナイロン　革　5万とか", "revisit": "no"}], "_summary_ai": true, "category": "バッグ", "category_ai": true}, {"name": "Wildswans", "country": "日本", "year": "1998年", "founder": "山本勝", "origin": "高級革小物", "philosophy": "一生使える革製品", "products": "コードバン財布", "summary": "一生使える革小物", "visits": [], "_summary_ai": true, "category": "革小物", "category_ai": true}, {"name": "土屋鞄", "country": "日本", "year": "1965年", "founder": "土屋國男", "origin": "ランドセル製造", "philosophy": "時を超えて愛されるものづくり", "products": "ランドセル、財布", "summary": "日本の格式あるブランド", "visits": [{"date": "260807スクランブルスクエア", "place": "", "note": "ブライドルレザー（イギリス　ワックス）\nシェルコードバン（馬）8万とか", "revisit": "no"}], "_summary_ai": false, "category": "バッグ", "category_ai": true}, {"name": "大峡製鞄", "country": "日本", "year": "1935年", "founder": "大峡保男", "origin": "ランドセル・革鞄製造", "philosophy": "日本最高峰の鞄づくり", "products": "ビジネスバッグ、ランドセル", "summary": "日本の格式あるブランド", "visits": [{"date": "260807伊勢丹", "place": "", "note": "コープ（子牛）8万とか", "revisit": "no"}], "_summary_ai": false, "category": "バッグ", "category_ai": true}, {"name": "HERZ", "country": "日本", "year": "1973年", "founder": "近藤昭作", "origin": "手作り革鞄", "philosophy": "丈夫で長く使える革製品", "products": "革バッグ、財布", "summary": "丈夫で長く使う革鞄", "visits": [], "_summary_ai": true, "category": "バッグ", "category_ai": true}, {"name": "SOMÈS", "country": "日本", "year": "1964年", "founder": "ソメスサドル", "origin": "馬具製造", "philosophy": "馬具づくりで培った技術を革製品へ。北海道・砂川でのものづくり", "products": "財布、バッグ、馬具", "summary": "馬具から生まれた北海道の革製品", "visits": [{"date": "260810 銀座", "place": "", "note": "国産牛革の財布を実見。長財布は5万円弱でお値打ち。北海道・砂川発。馬具メーカーだが財布には国産牛革なども使用。", "revisit": "yes"}], "_summary_ai": false, "category": "馬具", "category_ai": true}, {"name": "銀座タニザワ", "country": "日本", "year": "1874年", "founder": "谷澤禎三", "origin": "鞄製造・販売", "philosophy": "誠実なものづくりと日本の鞄文化の継承。流行に合わせて商品を変えるのではなく、世の中の売れ行きが変わる", "products": "ダレスバッグ、BLACK BULL", "summary": "日本の鞄文化を残す老舗", "visits": [{"date": "260810 銀座", "place": "", "note": "栃木レザーや姫路のタンナーについて教えてもらい、牛の原皮も見せてもらった。ダレスバッグは昔からデザインを変えていないとのこと。長財布は4万円程度。", "revisit": "yes"}], "_summary_ai": false, "category": "バッグ", "category_ai": true}, {"name": "yuhaku", "country": "日本", "year": "2009年", "founder": "矢澤裕也", "origin": "革製品・染色", "philosophy": "手染めによる独自の色彩表現。革をキャンバスのように捉え、経年変化も含めて楽しむ", "products": "長財布、名刺入れ、バッグ", "summary": "革を染めて表現する", "visits": [{"date": "260810 銀座", "place": "", "note": "独特の染色表現。使用によって色や艶が変化することを店員さんから説明してもらった。長財布は8万円前後。", "revisit": "yes"}], "_summary_ai": false, "category": "革小物", "category_ai": true}, {"name": "WILDSWANS", "country": "日本", "year": "1998年", "founder": "山本勝", "origin": "革製品・革小物", "philosophy": "素材を吟味し、長く使える革製品をつくる。経年変化を楽しみながら育てる", "products": "長財布、革小物、バッグ", "summary": "革を育てる", "visits": [{"date": "260810 銀座", "place": "", "note": "サドルプルアップを実際に触り、ブライドルレザーとの違いを体感。経年変化した見本は色が深く変わり、艶が非常に強かった。長財布は8万円前後。店内や接客にもワイルドな個性があった。", "revisit": "yes"}], "_summary_ai": false, "category": "革小物", "category_ai": true}];
+const key="brand_note_v04";
+let db=JSON.parse(localStorage.getItem(key)||"null"); if(!db) db=initial;
+let draft=null;
+function show(id){["home","add","confirm","detail"].forEach(x=>document.getElementById(x).classList.add("hidden"));document.getElementById(id).classList.remove("hidden");if(id==="home"){renderStats();renderList()}}
+function esc(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function renderStats(){let v=db.reduce((a,b)=>a+(b.visits||[]).length,0),r=db.reduce((a,b)=>a+(b.visits||[]).filter(x=>x.revisit==="yes").length,0);document.getElementById("stats").innerHTML=`<div class="card"><b>${db.length}</b><div class="muted">登録ブランド</div></div><div class="card"><b>${v}</b><div class="muted">訪問記録</div></div><div class="card"><b>${r}</b><div class="muted">また行きたい</div></div>`}
+const CAT_ICON={宝飾:"💎",時計:"⌚",革小物:"👝",バッグ:"👜",靴:"👞",文房具:"🖋️",馬具:"🐎",その他:"🏷️"};
+function catLabel(c){return `${CAT_ICON[c]||"🏷️"} ${c||"その他"}`}
+
+function renderCats(){
+const cats=["","宝飾","時計","革小物","バッグ","靴","文房具","馬具","その他"];
+const current=document.getElementById("cat")?.value||"";
+document.getElementById("catButtons").innerHTML=cats.map(c=>{
+ const label=c?catLabel(c):"すべて";
+ const active=current===c;
+ return `<button class="${active?"":"secondary"}" style="padding:8px 12px" onclick="setCat('${c}')">${label}</button>`;
+}).join("");
+}
+function setCat(c){
+let hidden=document.getElementById("cat");
+if(!hidden){hidden=document.createElement("input");hidden.type="hidden";hidden.id="cat";document.querySelector(".search").appendChild(hidden)}
+hidden.value=c;renderCats();renderList();
+}
+
+function renderList(){
+let q=(document.getElementById("search")?.value||"").toLowerCase();
+let c=(document.getElementById("cat")?.value||"");
+let a=db.map((b,i)=>({b,i})).filter(x=>
+  (!c||x.b.category===c) &&
+  (x.b.name+" "+x.b.country+" "+x.b.summary+" "+(x.b.philosophy||"")+" "+(x.b.category||"")).toLowerCase().includes(q)
+);
+document.getElementById("list").innerHTML=a.length?a.map(x=>`
+<div class="card brand" onclick="openBrand(${x.i})">
+<b>${esc(x.b.name)}</b>
+<span class="pill">${esc(x.b.country)}</span>
+<span class="pill">${esc(x.b.category||"その他")}</span>
+${x.b.visits?.length?`<span class="pill">${x.b.visits.length} visit</span>`:""}
+<div class="small" style="margin-top:8px">${catLabel(x.b.category||"その他")}</div>
+<p class="muted">${esc(x.b.summary||"キャッチ未設定")} ${x.b._summary_ai?'<span class="pill">ちゃぴこ案</span>':""}</p>
+</div>`).join(""):"<p class='muted'>該当なし</p>"
+}
+function research(){let n=document.getElementById("brandName").value.trim();if(!n)return alert("ブランド名を入力してください");draft={name:n,country:"要確認",year:"要確認",founder:"要確認",origin:"要確認",philosophy:"Web＋AI調査で作成",products:"要確認",summary:"新規ブランド",visits:[]};document.getElementById("researchResult").innerHTML=fields(draft);show("confirm")}
+function fields(d){return `<label>国・地域<input id="c" value="${esc(d.country)}"></label><label>創業年<input id="y" value="${esc(d.year)}"></label><label>創業者<input id="f" value="${esc(d.founder)}"></label><label>起源<input id="o" value="${esc(d.origin)}"></label><label>理念<textarea id="p">${esc(d.philosophy)}</textarea></label><label>代表商品<textarea id="pr">${esc(d.products)}</textarea></label><label>一言で表すと<textarea id="s">${esc(d.summary)}</textarea></label>`}
+function saveResearch(){draft.country=c.value;draft.year=y.value;draft.founder=f.value;draft.origin=o.value;draft.philosophy=p.value;draft.products=pr.value;draft.summary=s.value;db.push(draft);persist();show("home")}
+function openBrand(i){let b=db[i],vs=b.visits||[];document.getElementById("detail").innerHTML=`<div class="card"><h2>${esc(b.name)}</h2><span class="pill">${esc(b.country)}</span>
+<span class="catpill">AI分類：${catLabel(b.category||"その他")}</span><p><b>${esc(b.summary||"キャッチ未設定")}</b> ${b._summary_ai?'<span class="pill">ちゃぴこ案</span>':""}</p><div class="grid"><div><b>創業</b><br>${esc(b.year)}</div><div><b>創業者</b><br>${esc(b.founder)}</div><div><b>起源</b><br>${esc(b.origin)}</div></div><hr><h3>ブランドを知る</h3><p>${esc(b.philosophy)}</p><p><b>代表商品：</b>${esc(b.products)}</p></div>
+<div class="card"><h3>訪問・体験を追加</h3><label>日付<input id="vd" placeholder="260925 / 2026-09-25"></label><label>場所<input id="vp" placeholder="例：銀座店"></label><label>感想<textarea id="vn"></textarea></label><label>また行きたい<select id="vr"></select></label><button onclick="addVisit(${i})">保存</button></div>
+<div class="card"><h3>これまでの訪問</h3>${vs.length?vs.map((v,j)=>`<div class="card"><b>${esc(v.date)} ${esc(v.place)}</b>${v.revisit==="yes"?'<span class="pill">また行きたい</span>':""}<p>${esc(v.note)}</p><button class="secondary" onclick="review(${i},${j})">ちゃぴこレビュー用メモ</button></div>`).join(""):"<p class='muted'>まだありません</p>"}</div><button class="secondary" onclick="show('home')">← 一覧</button>`;show("detail")}
+function addVisit(i){db[i].visits.push({date:vd.value,place:vp.value,note:vn.value,revisit:vr.value});persist();openBrand(i)}
+function review(i,j){let b=db[i],v=b.visits[j],t=`【BRAND NOTEレビュー】\\nブランド：${b.name}\\n基本情報：${b.summary}\\n訪問：${v.date} ${v.place}\\n体験：${v.note}\\n\\n①今回わかったこと ②自分のブランド観 ③次に見るポイント を整理してください。`;navigator.clipboard?.writeText(t);alert("レビュー用メモをコピーしました。『人生リブート計画』のちゃぴこに貼り付けてください。")}
+function exportReboot(){
+  const visited=db.flatMap(b=>(b.visits||[]).map(v=>({brand:b.name,category:b.category||"その他",country:b.country,date:v.date,place:v.place,note:v.note,revisit:v.revisit})));
+  const lines=["# REBOOT 56｜ブランド学習ログ","",`更新日：${new Date().toLocaleDateString("ja-JP")}`,"",`登録ブランド数：${db.length}`,`訪問記録数：${visited.length}`,""];
+  visited.forEach(v=>{
+    lines.push(`## ${v.brand}`);
+    lines.push(`- カテゴリー：${v.category}`);
+    lines.push(`- 国：${v.country||"未記録"}`);
+    lines.push(`- 訪問：${v.date||"日付未記録"} ${v.place||""}`);
+    lines.push(`- 感想：${v.note||"未記録"}`);
+    lines.push(`- また行きたい：${v.revisit==="yes"?"はい":"未選択/今回はなし"}`);
+    lines.push("");
+  });
+  const blob=new Blob([lines.join("\\n")],{type:"text/markdown;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="REBOOT56_ブランド学習ログ.md";a.click();
+  alert("REBOOT 56用の学習ログを作りました。ChatGPT『人生リブート計画』に添付・貼り付けて、ちゃぴこレビューに使えます。");
+}
+function backup(){let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:"application/json"}));a.download="brand_note_backup.json";a.click()}
+function persist(){localStorage.setItem(key,JSON.stringify(db))}
+renderStats();renderCats();renderList();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}
+</script></body></html>

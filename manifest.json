@@ -1,0 +1,9 @@
+{
+  "name":"BRAND NOTE - REBOOT 56",
+  "short_name":"BRAND NOTE",
+  "start_url":"./",
+  "display":"standalone",
+  "background_color":"#f5f3ef",
+  "theme_color":"#292724",
+  "lang":"ja"
+}
